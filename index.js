@@ -14,7 +14,7 @@ console.log(process.env.DB_PASS);
 //quickshipUser
 
 //nw2J9VqXcQ8zWX1N
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dbdkno8.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://quickshipUser:nw2J9VqXcQ8zWX1N@cluster0.dbdkno8.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {

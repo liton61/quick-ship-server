@@ -31,6 +31,8 @@ async function run() {
     // await client.connect();
     const pricingCollection = client.db("quickship").collection("pricing");
 
+    const calculatorCollection = client.db("quickship").collection("calculator");
+
     //pricing collection
     // DB_USER=quickshipUser
     // DB_PASS=nw2J9VqXcQ8zWX1N
@@ -47,6 +49,25 @@ async function run() {
       const result = await pricingCollection.findOne(query);
       res.send(result);
     });
+
+
+
+    // Delivery Calculator get here
+    app.get("/calculator", async(req, res) =>{
+      const result = await calculatorCollection.find().toArray()
+      res.send(result)
+    })
+
+    // Delivery Calculator post here
+    app.post("/calculator", async (req, res) =>{
+      const calculator = req.body
+      calculator.time = new Date();
+      // console.log(calculator);
+      const result = await calculatorCollection.insertOne(calculator)
+      res.send(result)
+    })
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });

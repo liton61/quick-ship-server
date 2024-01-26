@@ -36,7 +36,7 @@ async function run() {
     //pricing collection
     // DB_USER=quickshipUser
     // DB_PASS=nw2J9VqXcQ8zWX1N
-    app.get("/price-data", async (req, res) => {
+    app.get("/price-box", async (req, res) => {
       const result = await pricingCollection.find().toArray();
       res.send(result);
       console.log(result);

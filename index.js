@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const stripe = require('stripe')("sk_test_51OEHKpItrEdLuT7QFfLsHZW8zwDrTSOHDcz96uSkTmnuQ53TLekmLbYUrGmo3jziXO1Y16TUy8uQPmrSBNU3udx700F2sQLM6W")
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
@@ -30,7 +31,8 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     const pricingCollection = client.db("quickship").collection("pricing");
-
+    const orderCollection = client.db("quickship").collection("order");
+    const paymentCollection = client.db("quickship").collection("payment");
     const calculatorCollection = client.db("quickship").collection("calculator");
 
     //pricing collection
@@ -49,6 +51,59 @@ async function run() {
       const result = await pricingCollection.findOne(query);
       res.send(result);
     });
+
+    // Order collection 
+    app.get("/order", async (req, res) => {
+      const result = await orderCollection.find().toArray()
+      res.send(result)
+    })
+
+    app.post("/order", async (req, res) => {
+      const order = req.body
+      order.time = new Date();
+      // console.log(order);
+      const result = await orderCollection.insertOne(order)
+      res.send(result)
+    })
+
+    //payment api here
+    app.post("/create-payment-intent", async (req, res) => {
+      try {
+        const {
+          amount
+        } = req.body
+
+        const totalAmount = parseFloat(amount * 100)
+        // console.log(totalAmount);
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: totalAmount,
+          currency: "usd",
+          payment_method_types: ["card"]
+        })
+
+        res.send({
+          clientSecret: paymentIntent.client_secret
+        })
+      } catch (error) {
+        console.log(error.message);
+      }
+    })
+
+    app.post("/payment", async (req, res) => {
+      const payment = req.body
+      const result = await paymentCollection.insertOne(payment)
+      res.send(result)
+    })
+
+    app.get("/payment", async (req, res) => {
+      // const user = req.query.email
+      // const query ={}
+      // if (user) {
+      //     query.email = user;
+      // }
+      const result = await paymentCollection.find().toArray()
+      res.send(result)
+    })
 
 
 

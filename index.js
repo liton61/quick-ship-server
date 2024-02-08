@@ -67,7 +67,7 @@ async function run() {
 
     // get method for users
     app.get('/users', async (req, res) => {
-      const result = await userCollection.find().toArray();
+      const result = await usersCollection.find().toArray();
       res.send(result)
     })
 
@@ -139,6 +139,19 @@ async function run() {
             res.send(result)
         })
 
+
+    // patch method for user to make admin
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
 
     //pricing collection
     app.get("/price-box", async (req, res) => {

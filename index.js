@@ -28,7 +28,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-    const userCollection = client.db("quickship").collection("users");
+    const usersCollection = client.db("quickship").collection("users")
     const pricingCollection = client.db("quickship").collection("pricing");
     const orderCollection = client.db("quickship").collection("order");
     const paymentCollection = client.db("quickship").collection("payment");
@@ -72,68 +72,73 @@ async function run() {
     })
 
     // use verify admin after verifyToken
-    const verifyAdmin = async (req, res, next) => {
-      const email = req.decoded.email;
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      const isAdmin = user?.role === "admin";
-      if (!isAdmin) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
-      next();
-    };
 
     // users related api
-    app.get("/users", verifyAdmin, async (req, res) => {
-      const result = await userCollection.find().toArray();
-      res.send(result);
-    });
+    // const verifyAdmin = async (req, res, next) => {
+    //         const email = req.decoded.email;
+    //         const query = {
+    //             email: email
+    //         };
+    //         const user = await usersCollection.findOne(query);
+    //         const isAdmin = user?.role === 'admin';
+    //         if (!isAdmin) {
+    //             return res.status(403).send({
+    //                 message: 'forbidden access'
+    //             });
+    //         }
+    //         next();
+    //     }
 
-    app.get("/users/admin/:email", async (req, res) => {
-      const email = req.params.email;
+    // app.get("/users", async (req, res) => {
+    //         const admin = req.query.role
+    //         // console.log(admin);
+    //         const query = {}
 
-      if (email !== req.decoded.email) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+    //         if (admin) {
+    //             query.role = admin;
+    //         }
+    //         const result = await usersCollection.find(query).toArray()
+    //         res.send(result)
+    //     })
 
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      let admin = false;
-      if (user) {
-        admin = user?.role === "admin";
-      }
-      res.send({ admin });
-    });
+    //     app.get('/users/admin/:email', async (req, res) => {
+    //         const email = req.params.email;
 
-    app.post("/users", async (req, res) => {
-      const user = req.body;
-      const query = { email: user.email };
-      const existingUser = await userCollection.findOne(query);
-      if (existingUser) {
-        return res.send({ message: "user already exists", insertedId: null });
-      }
-      const result = await userCollection.insertOne(user);
-      res.send(result);
-    });
+    //         if (email !== req.decoded.email) {
+    //             return res.status(403).send({
+    //                 message: 'forbidden access'
+    //             })
+    //         }
 
-    // app.patch("/users/admin/:id", verifyAdmin, async (req, res) => {
-    //   const id = req.params.id;
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updatedDoc = {
-    //     $set: {
-    //       role: "admin",
-    //     },
-    //   };
-    //   const result = await userCollection.updateOne(filter, updatedDoc);
-    //   res.send(result);
-    // });
+    //         const query = {
+    //             email: email
+    //         };
+    //         const user = await usersCollection.findOne(query);
+    //         let admin = false;
+    //         if (user) {
+    //             admin = user?.role === 'admin';
+    //         }
+    //         res.send({
+    //             admin
+    //         });
+    //     })
 
-    app.delete("/users/:id", verifyAdmin, async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await userCollection.deleteOne(query);
-      res.send(result);
-    });
+        app.post("/users", async (req, res) => {
+            const user = req.body
+            const query = {
+                email: user.email
+            }
+            const existingUser = await usersCollection.findOne(query)
+            if (existingUser) {
+                return res.send({
+                    message: "user already exist",
+                    insertedId: null
+                })
+            }
+            const result = await usersCollection.insertOne(user)
+            res.send(result)
+        })
+
 
     //pricing collection
     app.get("/price-box", async (req, res) => {
@@ -152,7 +157,22 @@ async function run() {
 
     // Order collection
     app.get("/order", async (req, res) => {
-      const result = await orderCollection.find().toArray();
+      const user = req.query.email
+      const query = {}
+      if (user) {
+        query.email = user;
+      }
+
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id)
+      };
+      const result = await orderCollection.findOne(query);
       res.send(result);
     });
 
@@ -192,12 +212,12 @@ async function run() {
     });
 
     app.get("/payment", async (req, res) => {
-      // const user = req.query.email
-      // const query ={}
-      // if (user) {
-      //     query.email = user;
-      // }
-      const result = await paymentCollection.find().toArray();
+      const user = req.query.email
+      const query ={}
+      if (user) {
+          query.email = user;
+      }
+      const result = await paymentCollection.find(query).toArray();
       res.send(result);
     });
 

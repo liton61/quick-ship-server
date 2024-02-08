@@ -59,6 +59,18 @@ async function run() {
     //   })
     // }
 
+    // get method for order
+    app.get('/order', async (req, res) => {
+      const result = await orderCollection.find().toArray();
+      res.send(result)
+    })
+
+    // get method for users
+    // app.get('/users', async (req, res) => {
+    //   const result = await userCollection.find().toArray();
+    //   res.send(result)
+    // })
+
     // use verify admin after verifyToken
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;

@@ -27,7 +27,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-    const userCollection = client.db("quickship").collection("users");
+    const usersCollection = client.db("quickship").collection("users");
     const pricingCollection = client.db("quickship").collection("pricing");
     const orderCollection = client.db("quickship").collection("order");
     const paymentCollection = client.db("quickship").collection("payment");
@@ -58,6 +58,91 @@ async function run() {
     //   })
     // }
 
+    // get method for order
+    app.get("/order", async (req, res) => {
+      const result = await orderCollection.find().toArray();
+      res.send(result);
+    });
+    // my order email gays
+    app.get("/order", async (req, res) => {
+      console.log(req.query.email);
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //order delete
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //order collection updated
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.findOne(query);
+      res.send(result);
+    });
+
+    // user update
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateOrder = req.body;
+
+      const orderUpdate = {
+        $set: {
+          phone: updateOrder.phone,
+          price: updateOrder.productPrice,
+          weight: updateOrder.weight,
+          time: updateOrder.time,
+        },
+      };
+
+      const result = await orderCollection.updateOne(
+        filter,
+        orderUpdate,
+        options
+      );
+      res.send(result);
+    });
+    // user return
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const returnOrder = req.body;
+
+      const orderReturn = {
+        $set: {
+          name: returnOrder.name,
+          price: returnOrder.productPrice,
+          weight: returnOrder.weight,
+        },
+      };
+
+      const result = await orderCollection.updateOne(
+        filter,
+        orderReturn,
+        options
+      );
+      res.send(result);
+    });
+
+    // get method for users
+
+    // app.get('/users', async (req, res) => {
+    //   const result = await usersCollection.find().toArray();
+    //   res.send(result)
+    // })
+
     // use verify admin after verifyToken
     const verifyAdmin = async (req, res, next) => {
       const email = req.decoded.email;
@@ -79,42 +164,75 @@ async function run() {
     app.get("/users/admin/:email", async (req, res) => {
       const email = req.params.email;
 
-      if (email !== req.decoded.email) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
+    //         if (admin) {
+    //             query.role = admin;
+    //         }
+    //         const result = await usersCollection.find(query).toArray()
+    //         res.send(result)
+    //     })
 
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      let admin = false;
-      if (user) {
-        admin = user?.role === "admin";
-      }
-      res.send({ admin });
-    });
+    //     app.get('/users/admin/:email', async (req, res) => {
+    //         const email = req.params.email;
+
+    //         if (email !== req.decoded.email) {
+    //             return res.status(403).send({
+    //                 message: 'forbidden access'
+    //             })
+    //         }
+
+    //         const query = {
+    //             email: email
+    //         };
+    //         const user = await usersCollection.findOne(query);
+    //         let admin = false;
+    //         if (user) {
+    //             admin = user?.role === 'admin';
+    //         }
+    //         res.send({
+    //             admin
+    //         });
+        })
 
     app.post("/users", async (req, res) => {
       const user = req.body;
-      const query = { email: user.email };
-      const existingUser = await userCollection.findOne(query);
+      const query = {
+        email: user.email,
+      };
+      const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
-        return res.send({ message: "user already exists", insertedId: null });
+        return res.send({
+          message: "user already exist",
+          insertedId: null,
+        });
       }
-      const result = await userCollection.insertOne(user);
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
 
-    // app.patch("/users/admin/:id", verifyAdmin, async (req, res) => {
-    //   const id = req.params.id;
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updatedDoc = {
-    //     $set: {
-    //       role: "admin",
-    //     },
-    //   };
-    //   const result = await userCollection.updateOne(filter, updatedDoc);
-    //   res.send(result);
-    // });
 
+         app.get("/users", async (req, res) => {
+           const user = req.query.email
+           const query = {}
+           if (user) {
+             query.email = user;
+           }
+
+           const result = await usersCollection.find(query).toArray();
+           res.send(result);
+         });
+
+    // patch method for user to make admin
+    app.patch('/users/admin/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: 'admin'
+        }
+      }
+      const result = await usersCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
 
     //pricing collection
     app.get("/price-box", async (req, res) => {
@@ -132,7 +250,22 @@ async function run() {
 
     // Order collection
     app.get("/order", async (req, res) => {
-      const result = await orderCollection.find().toArray();
+      const user = req.query.email;
+      const query = {};
+      if (user) {
+        query.email = user;
+      }
+
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const result = await orderCollection.findOne(query);
       res.send(result);
     });
 
@@ -172,12 +305,12 @@ async function run() {
     });
 
     app.get("/payment", async (req, res) => {
-      // const user = req.query.email
-      // const query ={}
-      // if (user) {
-      //     query.email = user;
-      // }
-      const result = await paymentCollection.find().toArray();
+      const user = req.query.email;
+      const query = {};
+      if (user) {
+        query.email = user;
+      }
+      const result = await paymentCollection.find(query).toArray();
       res.send(result);
     });
 

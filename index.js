@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 
 const app = express();
@@ -74,13 +74,7 @@ async function run() {
       res.send(result);
     });
 
-    //order delete
-    app.delete("/order/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await orderCollection.deleteOne(query);
-      res.send(result);
-    });
+
 
     //order collection updated
     app.get("/order/:id", async (req, res) => {
@@ -136,6 +130,14 @@ async function run() {
       res.send(result);
     });
 
+     //order delete
+     app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // get method for users
 
     // app.get('/users', async (req, res) => {
@@ -144,20 +146,20 @@ async function run() {
     // })
 
     // use verify admin after verifyToken
-    const verifyAdmin = async (req, res, next) => {
-      const email = req.decoded.email;
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      const isAdmin = user?.role === "admin";
-      if (!isAdmin) {
-        return res.status(403).send({ message: "forbidden access" });
-      }
-      next();
-    };
+    // const verifyAdmin = async (req, res, next) => {
+    //   const email = req.decoded.email;
+    //   const query = { email: email };
+    //   const user = await userCollection.findOne(query);
+    //   const isAdmin = user?.role === "admin";
+    //   if (!isAdmin) {
+    //     return res.status(403).send({ message: "forbidden access" });
+    //   }
+    //   next();
+    // };
 
     // users related api
-    app.get("/users", verifyAdmin, async (req, res) => {
-      const result = await userCollection.find().toArray();
+    app.get("/users",  async (req, res) => {
+      const result = await usersCollection.find().toArray();
       res.send(result);
     });
 

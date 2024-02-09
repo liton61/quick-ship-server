@@ -66,10 +66,10 @@ async function run() {
     })
 
     // get method for users
-    app.get('/users', async (req, res) => {
-      const result = await usersCollection.find().toArray();
-      res.send(result)
-    })
+    // app.get('/users', async (req, res) => {
+    //   const result = await usersCollection.find().toArray();
+    //   res.send(result)
+    // })
 
     // use verify admin after verifyToken
 
@@ -140,6 +140,18 @@ async function run() {
         })
 
 
+
+         app.get("/users", async (req, res) => {
+           const user = req.query.email
+           const query = {}
+           if (user) {
+             query.email = user;
+           }
+
+           const result = await usersCollection.find(query).toArray();
+           res.send(result);
+         });
+
     // patch method for user to make admin
     app.patch('/users/admin/:id', async (req, res) => {
       const id = req.params.id;
@@ -149,7 +161,7 @@ async function run() {
           role: 'admin'
         }
       }
-      const result = await userCollection.updateOne(filter, updatedDoc)
+      const result = await usersCollection.updateOne(filter, updatedDoc)
       res.send(result)
     })
 

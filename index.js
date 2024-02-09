@@ -11,8 +11,6 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dbdkno8.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -28,7 +26,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-    const usersCollection = client.db("quickship").collection("users")
+    const usersCollection = client.db("quickship").collection("users");
     const pricingCollection = client.db("quickship").collection("pricing");
     const orderCollection = client.db("quickship").collection("order");
     const paymentCollection = client.db("quickship").collection("payment");
@@ -60,12 +58,85 @@ async function run() {
     // }
 
     // get method for order
-    app.get('/order', async (req, res) => {
+    app.get("/order", async (req, res) => {
       const result = await orderCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
+    // my order email gays
+    app.get("/order", async (req, res) => {
+      console.log(req.query.email);
+      let query = {};
+      if (req.query?.email) {
+        query = { email: req.query.email };
+      }
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    //order delete
+    app.delete("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //order collection updated
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.findOne(query);
+      res.send(result);
+    });
+
+    // user update
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateOrder = req.body;
+
+      const orderUpdate = {
+        $set: {
+          phone: updateOrder.phone,
+          price: updateOrder.productPrice,
+          weight: updateOrder.weight,
+          time: updateOrder.time,
+        },
+      };
+
+      const result = await orderCollection.updateOne(
+        filter,
+        orderUpdate,
+        options
+      );
+      res.send(result);
+    });
+    // user return
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const returnOrder = req.body;
+
+      const orderReturn = {
+        $set: {
+          name: returnOrder.name,
+          price: returnOrder.productPrice,
+          weight: returnOrder.weight,
+        },
+      };
+
+      const result = await orderCollection.updateOne(
+        filter,
+        orderReturn,
+        options
+      );
+      res.send(result);
+    });
 
     // get method for users
+
     // app.get('/users', async (req, res) => {
     //   const result = await usersCollection.find().toArray();
     //   res.send(result)
@@ -123,22 +194,21 @@ async function run() {
     //         });
     //     })
 
-        app.post("/users", async (req, res) => {
-            const user = req.body
-            const query = {
-                email: user.email
-            }
-            const existingUser = await usersCollection.findOne(query)
-            if (existingUser) {
-                return res.send({
-                    message: "user already exist",
-                    insertedId: null
-                })
-            }
-            const result = await usersCollection.insertOne(user)
-            res.send(result)
-        })
-
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = {
+        email: user.email,
+      };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send({
+          message: "user already exist",
+          insertedId: null,
+        });
+      }
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
 
 
          app.get("/users", async (req, res) => {
@@ -182,8 +252,8 @@ async function run() {
 
     // Order collection
     app.get("/order", async (req, res) => {
-      const user = req.query.email
-      const query = {}
+      const user = req.query.email;
+      const query = {};
       if (user) {
         query.email = user;
       }
@@ -195,7 +265,7 @@ async function run() {
     app.get("/order/:id", async (req, res) => {
       const id = req.params.id;
       const query = {
-        _id: new ObjectId(id)
+        _id: new ObjectId(id),
       };
       const result = await orderCollection.findOne(query);
       res.send(result);
@@ -237,10 +307,10 @@ async function run() {
     });
 
     app.get("/payment", async (req, res) => {
-      const user = req.query.email
-      const query ={}
+      const user = req.query.email;
+      const query = {};
       if (user) {
-          query.email = user;
+        query.email = user;
       }
       const result = await paymentCollection.find(query).toArray();
       res.send(result);

@@ -26,13 +26,19 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
+
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>> COLLECTION <<<<<<<<<<<<<<<<<<<<<<<<<<<
+    
     const usersCollection = client.db("quickship").collection("users");
-    const pricingCollection = client.db("quickship").collection("pricing");
     const orderCollection = client.db("quickship").collection("order");
+    const pricingCollection = client.db("quickship").collection("pricing");
     const paymentCollection = client.db("quickship").collection("payment");
     const calculatorCollection = client
       .db("quickship")
       .collection("calculator");
+    const returnCollection = client.db("quickship").collection("return");
+
+    // +++++++++++++++++++++++++++++++ VERIFICATION ++++++++++++++++++++++++
 
     // jwt related api
     // app.post('/jwt', async (req, res) => {
@@ -57,35 +63,100 @@ async function run() {
     //   })
     // }
 
-    // get method for order
-    app.get("/order", async (req, res) => {
-      const result = await orderCollection.find().toArray();
-      res.send(result);
-    });
-    // my order email gays
-    app.get("/order", async (req, res) => {
-      console.log(req.query.email);
-      let query = {};
-      if (req.query?.email) {
-        query = { email: req.query.email };
+    // ============================== ADMIN =================================
+
+    // Admin
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+
+      if (email !== req.decoded.email) {
+        return res.status(403).send({
+          message: "forbidden access",
+        });
       }
-      const result = await orderCollection.find(query).toArray();
+
+      const query = {
+        email: email,
+      };
+      const user = await usersCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "admin";
+      }
+      res.send({
+        admin,
+      });
+    });
+
+    // patch method for user to make admin
+    app.patch("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
-    //order delete
-    app.delete("/order/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await orderCollection.deleteOne(query);
+    // ============================= USER ================================
+
+    // Users related api
+    app.get("/users", async (req, res) => {
+      const user = req.query.email;
+      const query = {};
+      if (user) {
+        query.email = user;
+      }
+
+      const result = await usersCollection.find(query).toArray();
       res.send(result);
     });
+
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+      const query = {
+        email: user.email,
+      };
+      const existingUser = await usersCollection.findOne(query);
+      if (existingUser) {
+        return res.send({
+          message: "user already exist",
+          insertedId: null,
+        });
+      }
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // =========================== BOOKING PARCEL ===================================
 
     //order collection updated
     app.get("/order/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await orderCollection.findOne(query);
+      res.send(result);
+    });
+
+    // Order collection
+    app.get("/order", async (req, res) => {
+      const user = req.query.email;
+      const query = {};
+      if (user) {
+        query.email = user;
+      }
+
+      const result = await orderCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.post("/order", async (req, res) => {
+      const order = req.body;
+      order.time = new Date();
+      const result = await orderCollection.insertOne(order);
       res.send(result);
     });
 
@@ -112,134 +183,28 @@ async function run() {
       );
       res.send(result);
     });
-    // user return
-    app.patch("/order/:id", async (req, res) => {
+
+    // Delete order
+    app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
-      const returnOrder = req.body;
-
-      const orderReturn = {
-        $set: {
-          name: returnOrder.name,
-          price: returnOrder.productPrice,
-          weight: returnOrder.weight,
-        },
-      };
-
-      const result = await orderCollection.updateOne(
-        filter,
-        orderReturn,
-        options
-      );
+      const query = { _id: new ObjectId(id) };
+      const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
 
-    // get method for users
-
-    // app.get('/users', async (req, res) => {
-    //   const result = await usersCollection.find().toArray();
-    //   res.send(result)
-    // })
-
-    // use verify admin after verifyToken
-
-    // users related api
-    // const verifyAdmin = async (req, res, next) => {
-    //         const email = req.decoded.email;
-    //         const query = {
-    //             email: email
-    //         };
-    //         const user = await usersCollection.findOne(query);
-    //         const isAdmin = user?.role === 'admin';
-    //         if (!isAdmin) {
-    //             return res.status(403).send({
-    //                 message: 'forbidden access'
-    //             });
-    //         }
-    //         next();
-    //     }
-
-    // app.get("/users", async (req, res) => {
-    //         const admin = req.query.role
-    //         // console.log(admin);
-    //         const query = {}
-
-    //         if (admin) {
-    //             query.role = admin;
-    //         }
-    //         const result = await usersCollection.find(query).toArray()
-    //         res.send(result)
-    //     })
-
-    //     app.get('/users/admin/:email', async (req, res) => {
-    //         const email = req.params.email;
-
-    //         if (email !== req.decoded.email) {
-    //             return res.status(403).send({
-    //                 message: 'forbidden access'
-    //             })
-    //         }
-
-    //         const query = {
-    //             email: email
-    //         };
-    //         const user = await usersCollection.findOne(query);
-    //         let admin = false;
-    //         if (user) {
-    //             admin = user?.role === 'admin';
-    //         }
-    //         res.send({
-    //             admin
-    //         });
-    //     })
-
-    app.post("/users", async (req, res) => {
-      const user = req.body;
-      const query = {
-        email: user.email,
-      };
-      const existingUser = await usersCollection.findOne(query);
-      if (existingUser) {
-        return res.send({
-          message: "user already exist",
-          insertedId: null,
-        });
-      }
-      const result = await usersCollection.insertOne(user);
+    // ============================ RETURN PARCEL ======================
+    // Return
+    app.post("/return", async (req, res) => {
+      const item = req.body;
+      const result = await returnCollection.insertOne(item);
       res.send(result);
     });
 
-
-         app.get("/users", async (req, res) => {
-           const user = req.query.email
-           const query = {}
-           if (user) {
-             query.email = user;
-           }
-
-           const result = await usersCollection.find(query).toArray();
-           res.send(result);
-         });
-
-    // patch method for user to make admin
-    app.patch('/users/admin/:id', async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          role: 'admin'
-        }
-      }
-      const result = await usersCollection.updateOne(filter, updatedDoc)
-      res.send(result)
-    })
-
+    // ============================ PRICE COLLECTION ======================
     //pricing collection
     app.get("/price-box", async (req, res) => {
       const result = await pricingCollection.find().toArray();
       res.send(result);
-      console.log(result);
     });
 
     //pricing collection id
@@ -250,35 +215,7 @@ async function run() {
       res.send(result);
     });
 
-    // Order collection
-    app.get("/order", async (req, res) => {
-      const user = req.query.email;
-      const query = {};
-      if (user) {
-        query.email = user;
-      }
-
-      const result = await orderCollection.find(query).toArray();
-      res.send(result);
-    });
-
-    app.get("/order/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = {
-        _id: new ObjectId(id),
-      };
-      const result = await orderCollection.findOne(query);
-      res.send(result);
-    });
-
-    app.post("/order", async (req, res) => {
-      const order = req.body;
-      order.time = new Date();
-      // console.log(order);
-      const result = await orderCollection.insertOne(order);
-      res.send(result);
-    });
-
+    // ========================== PAYMENT ==============================
     //payment api here
     app.post("/create-payment-intent", async (req, res) => {
       try {
@@ -316,6 +253,8 @@ async function run() {
       res.send(result);
     });
 
+    //============================ CALCULATOR =====================
+
     // Delivery Calculator get here
     app.get("/calculator", async (req, res) => {
       const result = await calculatorCollection.find().toArray();
@@ -331,13 +270,14 @@ async function run() {
       res.send(result);
     });
 
+    // +++++++++++++++++++++++++++ THE END ++++++++++++++++++++++++++++
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
   } finally {
-    // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }

@@ -28,7 +28,7 @@ async function run() {
     // await client.connect();
 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>> COLLECTION <<<<<<<<<<<<<<<<<<<<<<<<<<<
-    
+
     const usersCollection = client.db("quickship").collection("users");
     const orderCollection = client.db("quickship").collection("order");
     const pricingCollection = client.db("quickship").collection("pricing");
@@ -128,6 +128,13 @@ async function run() {
         });
       }
       const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
 

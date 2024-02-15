@@ -34,9 +34,8 @@ async function run() {
     const orderCollection = client.db("quickship").collection("order");
     const pricingCollection = client.db("quickship").collection("pricing");
     const paymentCollection = client.db("quickship").collection("payment");
-    const calculatorCollection = client
-      .db("quickship")
-      .collection("calculator");
+    const calculatorCollection = client.db("quickship").collection("calculator");
+    const areaCollection = client.db("quickship").collection("area");
     const returnCollection = client.db("quickship").collection("return");
 
     // +++++++++++++++++++++++++++++++ VERIFICATION ++++++++++++++++++++++++
@@ -180,6 +179,13 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await usersCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // =========================== BOOKING PARCEL ===================================
 
     //order collection updated
@@ -209,28 +215,44 @@ async function run() {
       res.send(result);
     });
 
-    // user update
-    app.patch("/order/:id", async (req, res) => {
+    // Order update
+    app.put("/order/:id", async (req, res) => {
       const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const options = { upsert: true };
       const updateOrder = req.body;
+      // console.log(updateOrder);
+
+      const filter = { _id: new ObjectId(id) };
 
       const orderUpdate = {
         $set: {
           phone: updateOrder.phone,
-          price: updateOrder.productPrice,
+          productPrice: updateOrder.price,
           weight: updateOrder.weight,
-          time: updateOrder.time,
+          deliveryDate: updateOrder.time
         },
       };
 
-      const result = await orderCollection.updateOne(
-        filter,
-        orderUpdate,
-        options
-      );
-      res.send(result);
+      const result = await orderCollection.updateOne(filter, orderUpdate)
+      res.send(result)
+    });
+
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+      // console.log(updateStatus);
+
+      const filter = {
+        _id: new ObjectId(id)
+      };
+
+      const statusUpdate = {
+        $set: {
+          status: status?.status,
+        },
+      };
+
+      const result = await orderCollection.updateOne(filter, statusUpdate)
+      res.send(result)
     });
 
     // Delete order
@@ -243,11 +265,17 @@ async function run() {
 
     // ============================ RETURN PARCEL ======================
     // Return
+    app.get("/return", async (req, res) => {
+      const result = await returnCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/return", async (req, res) => {
       const item = req.body;
       const result = await returnCollection.insertOne(item);
       res.send(result);
     });
+
 
     // ============================ PRICE COLLECTION ======================
     //pricing collection
@@ -316,6 +344,11 @@ async function run() {
       calculator.time = new Date();
       // console.log(calculator);
       const result = await calculatorCollection.insertOne(calculator);
+      res.send(result);
+    });
+
+    app.get("/area", async (req, res) => {
+      const result = await areaCollection.find().toArray();
       res.send(result);
     });
 

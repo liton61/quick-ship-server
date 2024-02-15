@@ -239,7 +239,6 @@ async function run() {
     app.patch("/order/:id", async (req, res) => {
       const id = req.params.id;
       const status = req.body;
-      // console.log(updateStatus);
 
       const filter = {
         _id: new ObjectId(id)

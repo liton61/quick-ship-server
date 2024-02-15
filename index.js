@@ -161,7 +161,6 @@ async function run() {
 
     // Order update
     app.put("/order/:id", async (req, res) => {
-
       const id = req.params.id;
       const updateOrder = req.body;
       // console.log(updateOrder);
@@ -181,6 +180,25 @@ async function run() {
       res.send(result)
     });
 
+    app.patch("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+      // console.log(updateStatus);
+
+      const filter = {
+        _id: new ObjectId(id)
+      };
+
+      const statusUpdate = {
+        $set: {
+          status: status?.status,
+        },
+      };
+
+      const result = await orderCollection.updateOne(filter, statusUpdate)
+      res.send(result)
+    });
+
     // Delete order
     app.delete("/order/:id", async (req, res) => {
       const id = req.params.id;
@@ -191,11 +209,17 @@ async function run() {
 
     // ============================ RETURN PARCEL ======================
     // Return
+    app.get("/return", async (req, res) => {
+      const result = await returnCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/return", async (req, res) => {
       const item = req.body;
       const result = await returnCollection.insertOne(item);
       res.send(result);
     });
+
 
     // ============================ PRICE COLLECTION ======================
     //pricing collection

@@ -128,11 +128,6 @@ async function run() {
       const result = await serviceCollection.deleteOne(query);
       res.send(result);
     });
-    app.post("/services", async (req, res) => {
-      const application = req.body;
-      const result = await serviceCollection.insertOne(application);
-      res.send(result);
-    });
 
     // =========================== APPLICATION ==============================
 

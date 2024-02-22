@@ -30,13 +30,18 @@ async function run() {
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>> COLLECTION <<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     const usersCollection = client.db("quickship").collection("users");
-    const applicationCollection = client.db("quickship").collection('application');
+    const applicationCollection = client
+      .db("quickship")
+      .collection("application");
     const orderCollection = client.db("quickship").collection("order");
     const pricingCollection = client.db("quickship").collection("pricing");
     const paymentCollection = client.db("quickship").collection("payment");
-    const calculatorCollection = client.db("quickship").collection("calculator");
+    const calculatorCollection = client
+      .db("quickship")
+      .collection("calculator");
     const areaCollection = client.db("quickship").collection("area");
     const returnCollection = client.db("quickship").collection("return");
+    const serviceCollection = client.db("quickship").collection("services");
 
     // +++++++++++++++++++++++++++++++ VERIFICATION ++++++++++++++++++++++++
 
@@ -101,28 +106,44 @@ async function run() {
       res.send(result);
     });
 
+    // =========================== SERVICES ==============================
+
+    //get all services data
+    app.get("/services", async (req, res) => {
+      const result = await serviceCollection.find().toArray();
+      res.send(result);
+    });
+
+    //get service data id ways
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await serviceCollection.findOne(query);
+      res.send(result);
+    });
+    // Delete services
+    app.delete("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await serviceCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // =========================== APPLICATION ==============================
 
     // post method for application
-    app.post('/application', async (req, res) => {
+    app.post("/application", async (req, res) => {
       const application = req.body;
       const result = await applicationCollection.insertOne(application);
       res.send(result);
-    })
-
+    });
 
     // get method for application
-    app.get('/application', async (req, res) => {
-      // const application = req.body;
-      const user = req.query.email;
-      const query = {};
-      if (user) {
-        query.email = user;
-      }
-      const result = await applicationCollection.find(query).toArray();
-  
+    app.get("/application", async (req, res) => {
+      const application = req.body;
+      const result = await applicationCollection.find(application).toArray();
       res.send(result);
-    })
+    });
 
     // Delete application
     app.delete("/application/:id", async (req, res) => {
@@ -152,8 +173,6 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
-
-
 
     // ============================= USER ================================
 
@@ -234,12 +253,12 @@ async function run() {
           phone: updateOrder.phone,
           productPrice: updateOrder.price,
           weight: updateOrder.weight,
-          deliveryDate: updateOrder.time
+          deliveryDate: updateOrder.time,
         },
       };
 
-      const result = await orderCollection.updateOne(filter, orderUpdate)
-      res.send(result)
+      const result = await orderCollection.updateOne(filter, orderUpdate);
+      res.send(result);
     });
 
     app.patch("/order/:id", async (req, res) => {
@@ -247,7 +266,7 @@ async function run() {
       const status = req.body;
 
       const filter = {
-        _id: new ObjectId(id)
+        _id: new ObjectId(id),
       };
 
       const statusUpdate = {
@@ -256,8 +275,8 @@ async function run() {
         },
       };
 
-      const result = await orderCollection.updateOne(filter, statusUpdate)
-      res.send(result)
+      const result = await orderCollection.updateOne(filter, statusUpdate);
+      res.send(result);
     });
 
     // Delete order
@@ -280,7 +299,6 @@ async function run() {
       const result = await returnCollection.insertOne(item);
       res.send(result);
     });
-
 
     // ============================ PRICE COLLECTION ======================
     //pricing collection

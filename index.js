@@ -113,8 +113,14 @@ async function run() {
 
     // get method for application
     app.get('/application', async (req, res) => {
-      const application = req.body;
-      const result = await applicationCollection.find(application).toArray();
+      // const application = req.body;
+      const user = req.query.email;
+      const query = {};
+      if (user) {
+        query.email = user;
+      }
+      const result = await applicationCollection.find(query).toArray();
+  
       res.send(result);
     })
 

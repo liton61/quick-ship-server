@@ -101,52 +101,6 @@ async function run() {
       res.send(result);
     });
 
-    // =========================== APPLICATION ==============================
-
-    // post method for application
-    app.post('/application', async (req, res) => {
-      const application = req.body;
-      const result = await applicationCollection.insertOne(application);
-      res.send(result);
-    })
-
-
-    // get method for application
-    app.get('/application', async (req, res) => {
-      const application = req.body;
-      const result = await applicationCollection.find(application).toArray();
-      res.send(result);
-    })
-
-    // Delete application
-    app.delete("/application/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await applicationCollection.deleteOne(query);
-      res.send(result);
-    });
-
-    // patch method for user to make admin
-    app.patch("/application/user/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: new ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          role: "Delivery Boy",
-        },
-      };
-      const result = await applicationCollection.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
-
-    // Delete order
-    app.delete("/users/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await usersCollection.deleteOne(query);
-      res.send(result);
-    });
-
 
 
     // ============================= USER ================================
@@ -236,6 +190,7 @@ async function run() {
       res.send(result)
     });
 
+
     app.patch("/order/:id", async (req, res) => {
       const id = req.params.id;
       const status = req.body;
@@ -249,8 +204,8 @@ async function run() {
           status: status?.status,
         },
       };
-
       const result = await orderCollection.updateOne(filter, statusUpdate)
+      console.log(result)
       res.send(result)
     });
 
@@ -261,6 +216,48 @@ async function run() {
       const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
+
+
+      // =========================== APPLICATION ==============================
+
+    // post method for application
+    app.post('/application', async (req, res) => {
+      const application = req.body;
+      const result = await applicationCollection.insertOne(application);
+      res.send(result);
+    })
+
+
+    // get method for application
+    app.get('/application', async (req, res) => {
+      const result = await applicationCollection.find(application).toArray();
+      res.send(result);
+    })
+
+    // Delete application
+    app.delete("/application/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await applicationCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // patch method for user to make admin
+    app.patch("/application/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "Delivery Boy",
+        },
+      };
+      const result = await applicationCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+
+
+
 
     // ============================ RETURN PARCEL ======================
     // Return

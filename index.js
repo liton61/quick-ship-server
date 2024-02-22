@@ -129,6 +129,24 @@ async function run() {
       res.send(result);
     });
 
+    // Order update
+    app.put("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateOrder = req.body;
+      // console.log(updateOrder);
+
+      const filter = { _id: new ObjectId(id) };
+
+      const serviceUpdate = {
+        $set: {
+          phone: serviceUpdate.title,
+        },
+      };
+
+      const result = await serviceCollection.updateOne(filter, serviceUpdate);
+      res.send(result);
+    });
+
     // =========================== APPLICATION ==============================
 
     // post method for application

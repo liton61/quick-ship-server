@@ -33,6 +33,7 @@ async function run() {
     const applicationCollection = client
       .db("quickship")
       .collection("application");
+    const reviewCollection = client.db("quickship").collection('reviews');
     const orderCollection = client.db("quickship").collection("order");
     const pricingCollection = client.db("quickship").collection("pricing");
     const paymentCollection = client.db("quickship").collection("payment");
@@ -179,6 +180,21 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
+
+    // ============================= REVIEW ================================
+
+    // post method for review
+    app.post('/reviews', async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    })
+
+    // get method for review
+    // app.get('/reviews', async (req, res) => {
+    //   const result = await reviewCollection.find().toArray();
+    //   res.send(result)
+    // })
 
     // ============================= USER ================================
 

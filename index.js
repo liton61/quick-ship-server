@@ -140,7 +140,18 @@ async function run() {
           res.send(result);
         });
 
-         
+         // =========================== Comments ==============================
+
+         // post method for posts
+         app.post('/comments', async (req, res) => {
+           const comments = req.body;
+           comments.time = new Date();
+           const result = await commentsCollection.insertOne(comments);
+           res.send(result);
+         })
+
+
+
     // =========================== APPLICATION ==============================
 
     // post method for application

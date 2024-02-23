@@ -30,17 +30,23 @@ async function run() {
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>> COLLECTION <<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     const usersCollection = client.db("quickship").collection("users");
-    const applicationCollection = client.db("quickship").collection('application');
+    const applicationCollection = client
+      .db("quickship")
+      .collection("application");
+    const reviewCollection = client.db("quickship").collection('reviews');
     const orderCollection = client.db("quickship").collection("order");
     const pricingCollection = client.db("quickship").collection("pricing");
     const paymentCollection = client.db("quickship").collection("payment");
-    const calculatorCollection = client.db("quickship").collection("calculator");
+    const calculatorCollection = client
+      .db("quickship")
+      .collection("calculator");
     const areaCollection = client.db("quickship").collection("area");
     const returnCollection = client.db("quickship").collection("return");
     const postsCollection = client.db("quickship").collection("posts");
     const commentsCollection = client.db("quickship").collection("comments");
 
 
+    const serviceCollection = client.db("quickship").collection("services");
 
     // +++++++++++++++++++++++++++++++ VERIFICATION ++++++++++++++++++++++++
 
@@ -165,23 +171,50 @@ async function run() {
            const result = await commentsCollection.findOne(query);
            res.send(result);
          });
+    // =========================== SERVICES ==============================
+
+    //get all services data
+    app.get("/services", async (req, res) => {
+      const result = await serviceCollection.find().toArray();
+      res.send(result);
+    });
+
+    //get service data id ways
+    app.get("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await serviceCollection.findOne(query);
+      res.send(result);
+    });
+    // Delete services
+    app.delete("/services/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await serviceCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // =========================== APPLICATION ==============================
 
     // post method for application
-    app.post('/application', async (req, res) => {
+    app.post("/application", async (req, res) => {
       const application = req.body;
       const result = await applicationCollection.insertOne(application);
       res.send(result);
-    })
-
+    });
 
     // get method for application
-    app.get('/application', async (req, res) => {
-      const application = req.body;
-      const result = await applicationCollection.find(application).toArray();
+    app.get("/application", async (req, res) => {
+      
+      const user = req.query.email;
+      const query = {};
+      if (user) {
+        query.email = user;
+      }
+
+      const result = await applicationCollection.find(query).toArray();
       res.send(result);
-    })
+    });
 
 
     // Delete application
@@ -213,7 +246,20 @@ async function run() {
       res.send(result);
     });
 
+    // ============================= REVIEW ================================
 
+    // post method for review
+    app.post('/reviews', async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    })
+
+    // get method for review
+    app.get('/reviews', async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result)
+    })
 
     // ============================= USER ================================
 
@@ -296,16 +342,17 @@ async function run() {
         },
       };
 
-      const result = await orderCollection.updateOne(filter, orderUpdate)
-      res.send(result)
+      const result = await orderCollection.updateOne(filter, orderUpdate);
+      res.send(result);
     });
+
 
     app.patch("/order/:id", async (req, res) => {
       const id = req.params.id;
       const status = req.body;
 
       const filter = {
-        _id: new ObjectId(id)
+        _id: new ObjectId(id),
       };
 
       const statusUpdate = {
@@ -314,8 +361,8 @@ async function run() {
         },
       };
 
-      const result = await orderCollection.updateOne(filter, statusUpdate)
-      res.send(result)
+      const result = await orderCollection.updateOne(filter, statusUpdate);
+      res.send(result);
     });
 
     // Delete order
@@ -325,6 +372,48 @@ async function run() {
       const result = await orderCollection.deleteOne(query);
       res.send(result);
     });
+
+
+      // =========================== APPLICATION ==============================
+
+    // post method for application
+    app.post('/application', async (req, res) => {
+      const application = req.body;
+      const result = await applicationCollection.insertOne(application);
+      res.send(result);
+    })
+
+
+    // get method for application
+    app.get('/application', async (req, res) => {
+      const result = await applicationCollection.find(application).toArray();
+      res.send(result);
+    })
+
+    // Delete application
+    app.delete("/application/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await applicationCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // patch method for user to make admin
+    app.patch("/application/user/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "Delivery Boy",
+        },
+      };
+      const result = await applicationCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+
+
+
 
     // ============================ RETURN PARCEL ======================
     // Return

@@ -42,6 +42,10 @@ async function run() {
       .collection("calculator");
     const areaCollection = client.db("quickship").collection("area");
     const returnCollection = client.db("quickship").collection("return");
+    const postsCollection = client.db("quickship").collection("posts");
+    const commentsCollection = client.db("quickship").collection("comments");
+
+
     const serviceCollection = client.db("quickship").collection("services");
 
     // +++++++++++++++++++++++++++++++ VERIFICATION ++++++++++++++++++++++++
@@ -107,6 +111,66 @@ async function run() {
       res.send(result);
     });
 
+        // =========================== Posts ==============================
+
+        // post method for posts
+        app.post('/posts', async (req, res) => {
+          const posts = req.body;
+          posts.time = new Date();
+          const result = await postsCollection.insertOne(posts);
+          res.send(result);
+        })
+
+
+        // get method for posts
+        app.get('/posts', async (req, res) => {
+          const page = Number(req.query.page);
+          const size = Number(req.query.size);
+
+          const options = {
+                sort: {
+                    time: -1,
+                }
+            }
+
+          const result = await postsCollection.find({}, options).skip(page * size).limit(size).toArray();
+          res.send(result);
+        })
+
+        app.get("/posts/:id", async (req, res) => {
+          const id = req.params.id;
+          const query = {
+            _id: new ObjectId(id)
+          };
+          const result = await postsCollection.findOne(query);
+          res.send(result);
+        });
+
+         // =========================== Comments ==============================
+
+         // post method for posts
+         app.post('/comments', async (req, res) => {
+           const comments = req.body;
+           comments.time = new Date();
+           const result = await commentsCollection.insertOne(comments);
+           res.send(result);
+         })
+
+
+         // get method for posts
+         app.get('/comments', async (req, res) => {
+           const result = await commentsCollection.find().toArray();
+           res.send(result);
+         })
+
+         app.get("/comments/:id", async (req, res) => {
+           const id = req.params.id;
+           const query = {
+             _id: new ObjectId(id)
+           };
+           const result = await commentsCollection.findOne(query);
+           res.send(result);
+         });
     // =========================== SERVICES ==============================
 
     //get all services data
@@ -151,6 +215,7 @@ async function run() {
       const result = await applicationCollection.find(query).toArray();
       res.send(result);
     });
+
 
     // Delete application
     app.delete("/application/:id", async (req, res) => {
@@ -269,13 +334,11 @@ async function run() {
       // console.log(updateOrder);
 
       const filter = { _id: new ObjectId(id) };
-
       const orderUpdate = {
         $set: {
-          phone: updateOrder.phone,
-          productPrice: updateOrder.price,
-          weight: updateOrder.weight,
-          deliveryDate: updateOrder.time,
+          phone: updateOrder?.phone,
+          productWeight: updateOrder?.weight,
+          deliveryDate: updateOrder?.time
         },
       };
 
@@ -362,6 +425,31 @@ async function run() {
     app.post("/return", async (req, res) => {
       const item = req.body;
       const result = await returnCollection.insertOne(item);
+      res.send(result);
+    });
+
+    app.patch("/return/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+
+      const filter = {
+        _id: new ObjectId(id)
+      };
+
+      const statusUpdate = {
+        $set: {
+          status: status?.status,
+        },
+      };
+
+      const result = await returnCollection.updateOne(filter, statusUpdate)
+      res.send(result)
+    });
+
+     app.delete("/return/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await returnCollection.deleteOne(query);
       res.send(result);
     });
 

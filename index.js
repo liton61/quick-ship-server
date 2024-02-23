@@ -157,7 +157,14 @@ async function run() {
            res.send(result);
          })
 
-       
+         app.get("/comments/:id", async (req, res) => {
+           const id = req.params.id;
+           const query = {
+             _id: new ObjectId(id)
+           };
+           const result = await commentsCollection.findOne(query);
+           res.send(result);
+         });
 
     // =========================== APPLICATION ==============================
 

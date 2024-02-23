@@ -151,6 +151,13 @@ async function run() {
          })
 
 
+         // get method for posts
+         app.get('/comments', async (req, res) => {
+           const result = await commentsCollection.find().toArray();
+           res.send(result);
+         })
+
+       
 
     // =========================== APPLICATION ==============================
 

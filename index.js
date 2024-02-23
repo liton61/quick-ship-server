@@ -37,6 +37,10 @@ async function run() {
     const calculatorCollection = client.db("quickship").collection("calculator");
     const areaCollection = client.db("quickship").collection("area");
     const returnCollection = client.db("quickship").collection("return");
+    const postsCollection = client.db("quickship").collection("posts");
+    const commentsCollection = client.db("quickship").collection("comments");
+
+
 
     // +++++++++++++++++++++++++++++++ VERIFICATION ++++++++++++++++++++++++
 
@@ -101,6 +105,17 @@ async function run() {
       res.send(result);
     });
 
+        // =========================== Posts ==============================
+
+        // post method for posts
+        app.post('/posts', async (req, res) => {
+          const posts = req.body;
+          posts.time = new Date();
+          const result = await postsCollection.insertOne(posts);
+          res.send(result);
+        })
+
+
     // =========================== APPLICATION ==============================
 
     // post method for application
@@ -117,6 +132,7 @@ async function run() {
       const result = await applicationCollection.find(application).toArray();
       res.send(result);
     })
+
 
     // Delete application
     app.delete("/application/:id", async (req, res) => {
@@ -222,13 +238,11 @@ async function run() {
       // console.log(updateOrder);
 
       const filter = { _id: new ObjectId(id) };
-
       const orderUpdate = {
         $set: {
-          phone: updateOrder.phone,
-          productPrice: updateOrder.price,
-          weight: updateOrder.weight,
-          deliveryDate: updateOrder.time
+          phone: updateOrder?.phone,
+          productWeight: updateOrder?.weight,
+          deliveryDate: updateOrder?.time
         },
       };
 
@@ -275,6 +289,30 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/return/:id", async (req, res) => {
+      const id = req.params.id;
+      const status = req.body;
+
+      const filter = {
+        _id: new ObjectId(id)
+      };
+
+      const statusUpdate = {
+        $set: {
+          status: status?.status,
+        },
+      };
+
+      const result = await returnCollection.updateOne(filter, statusUpdate)
+      res.send(result)
+    });
+
+     app.delete("/return/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await returnCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // ============================ PRICE COLLECTION ======================
     //pricing collection

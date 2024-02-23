@@ -116,6 +116,22 @@ async function run() {
         })
 
 
+        // get method for posts
+        app.get('/posts', async (req, res) => {
+          const page = Number(req.query.page);
+          const size = Number(req.query.size);
+
+          const options = {
+                sort: {
+                    time: -1,
+                }
+            }
+
+          const result = await postsCollection.find({}, options).skip(page * size).limit(size).toArray();
+          res.send(result);
+        })
+
+
     // =========================== APPLICATION ==============================
 
     // post method for application
